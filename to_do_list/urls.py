@@ -20,4 +20,5 @@ from django.urls import path, include #include is imported for including URL pat
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),#The URL pattern for the users app is defined, which includes the URL patterns from the users.urls module. This allows for better organization of URLs and separation of concerns between different apps in the project.
+    path('tasks/', include('tasks.urls')), #The URL pattern for the tasks app is defined, which includes the URL patterns from the tasks.urls module. This allows for better organization of URLs and separation of concerns between different apps in the project.
 ]
