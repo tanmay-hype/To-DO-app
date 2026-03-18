@@ -8,6 +8,8 @@ from rest_framework.authentication import SessionAuthentication #SessionAuthenti
 from rest_framework import generics, permissions #generics and permissions are imported for handling permissions and access control
 from .serializers import UserSerializer #UserSerializer is imported for serializing user data
 from .models import User #User is imported for querying the User model and performing CRUD operations
+from .permissions import IsOwner #IsOwner is imported for handling object-level permissions
+
 
 
 
@@ -52,5 +54,5 @@ class UserListCreateView(generics.ListCreateAPIView):#UserListView is a class-ba
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):#UserDetailView is a class-based view that handles retrieving, updating, and deleting individual users
     queryset = User.objects.all()#The queryset attribute is defined to specify the set of data that will be used for this view. In this case, it retrieves all User objects from the database.
     serializer_class = UserSerializer#The serializer_class attribute is defined to specify the serializer that will be used for this view. In this case, it uses the UserSerializer to serialize and deserialize User instances.
-    permission_classes = [permissions.IsAuthenticated]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.  
+    permission_classes = [permissions.IsAuthenticated, IsOwner]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.  
 
