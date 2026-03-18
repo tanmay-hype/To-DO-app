@@ -5,6 +5,11 @@ from .serializers import RegisterSerializer, LoginSerializer #RegisterSerializer
 from rest_framework import status #status is imported for sending appropriate HTTP status codes in responses
 from django.contrib.auth import login, logout #login and logout are imported for handling user authentication
 from rest_framework.authentication import SessionAuthentication #SessionAuthentication is imported for handling session-based authentication
+from rest_framework import generics, permissions #generics and permissions are imported for handling permissions and access control
+from .serializers import UserSerializer #UserSerializer is imported for serializing user data
+from .models import User #User is imported for querying the User model and performing CRUD operations
+
+
 
 class CsrExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
@@ -37,3 +42,15 @@ class LogoutView(APIView):#LogoutView is a class-based view that handles user lo
     def post(self, request):
         logout(request)#The post method is defined to handle POST requests for user logout. It uses Django's built-in logout function to log the user out.
         return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
+
+class UserListView(generics.ListCreateAPIView):#UserListView is a class-based view that handles listing and creating users
+    queryset = User.objects.all()#The queryset attribute is defined to specify the set of data that will be used for this view. In this case, it retrieves all User objects from the database.
+    serializer_class = UserSerializer#The serializer_class attribute is defined to specify the serializer that will be used for this view. In this case, it uses the UserSerializer to serialize and deserialize User instances.
+    permission_classes = [permissions.IsAuthenticated]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.
+
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):#UserDetailView is a class-based view that handles retrieving, updating, and deleting individual users
+    queryset = User.objects.all()#The queryset attribute is defined to specify the set of data that will be used for this view. In this case, it retrieves all User objects from the database.
+    serializer_class = UserSerializer#The serializer_class attribute is defined to specify the serializer that will be used for this view. In this case, it uses the UserSerializer to serialize and deserialize User instances.
+    permission_classes = [permissions.IsAuthenticated]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.  
+    
