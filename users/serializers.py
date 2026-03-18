@@ -40,3 +40,8 @@ class LoginSerializer(serializers.Serializer):
 # is raised.
 # The LoginSerializer is a simple serializer that takes
 #  in a username and password, and validates them against
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username')
