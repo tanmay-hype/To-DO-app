@@ -12,7 +12,7 @@ from django.contrib.auth import authenticate
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ('username', 'password')
 # the create method is overridden to create a new user
 #  using the create_user method provided by Django's 
 # User model manager.
