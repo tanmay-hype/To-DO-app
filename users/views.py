@@ -11,6 +11,12 @@ from .permissions import IsOwner #IsOwner is imported for handling object-level 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .jwt_serializer import CustomTokenSerializer #CustomTokenSerializer is imported for customizing the JWT token generation process   
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin, IsOwnerOrReadOnly #IsAdminOrReadOnly and IsOwnerOrReadOnly are imported for handling object-level permissions based on user roles and ownership
+from django.contrib.auth.tokens import default_token_generator #default_token_generator is imported for generating tokens for password reset and account activation
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode #urlsafe_base64_encode and urlsafe_base64_decode are imported for encoding and decoding user IDs in a URL-safe format, typically used in password reset and account activation links
+from django.utils.encoding import force_bytes, force_str #force_bytes and force_str are imported for
+from django.core.mail import send_mail #send_mail is imported for sending emails, such as password reset emails or account activation emails
+from django.conf import settings #settings is imported for accessing project settings, such as email configuration for sending emails
+from django.contrib.auth import get_user_model
 
 
 
@@ -30,22 +36,6 @@ class RegisterView(APIView):#RegisterView is a class-based view that handles use
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-#class LoginView(APIView):#LoginView is a class-based view that handles user login
-    #def post(self, request):
-        #serializer = LoginSerializer(data=request.data)#The post method is defined to handle POST requests for user login. It takes the request data and passes it to the LoginSerializer for validation.
-      #  if serializer.is_valid():
-        #    user = serializer.validated_data
-      #      login(request, user)#If the serializer is valid, the user is authenticated and logged in using Django's built-in login function.
-      #      return Response({"message": "User logged in successfully"}, status=status.HTTP_200_OK)
-       # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-#class LogoutView(APIView):#LogoutView is a class-based view that handles user logout
-    #authentication_classes = [CsrExemptSessionAuthentication]
-    
-   # def post(self, request):
-        #logout(request)#The post method is defined to handle POST requests for user logout. It uses Django's built-in logout function to log the user out.
-        #return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
 
 class UserListCreateView(generics.ListCreateAPIView):#UserListView is a class-based view that handles listing and creating users
     queryset = User.objects.all()#The queryset attribute is defined to specify the set of data that will be used for this view. In this case, it retrieves all User objects from the database.
@@ -61,3 +51,49 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):#UserDetailView is a
 
 class CustomTokenView(TokenObtainPairView):#CustomTokenView is a class-based view that handles JWT token generation using the CustomTokenSerializer
     serializer_class = CustomTokenSerializer#The serializer_class attribute is defined to specify the serializer that will be used for this view. In this case, it uses the CustomTokenSerializer to generate JWT tokens with custom claims.
+
+
+User = get_user_model() 
+
+class ForgotPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+
+        if not email:
+            return Response({"error": "Email is required"}, status=400)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        reset_link = f"http://127.0.0.1:8000/users/reset-password/{uid}/{token}/"
+
+        send_mail(
+            subject="Password Reset",
+            message=f"Click the link:{reset_link}",
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email],
+        )
+
+        # ✅ VERY IMPORTANT
+        return Response({"message": "Password reset link sent"}, status=200)        
+    
+class ResetPasswordView(APIView):#ResetPasswordView is a class-based view that handles the password reset process when a user clicks on the password reset link sent to their email
+    def post(self, request, uid, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uid))#The post method is defined to handle POST requests for resetting the password. It takes the encoded user ID (uidb64) and the token from the URL parameters. The encoded user ID is decoded using urlsafe_base64_decode and force_str to retrieve the original user ID.
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"error": "Invalid reset link"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if default_token_generator.check_token(user, token):#The token is validated using the default_token_generator's check_token method to ensure that it is valid and has not expired.
+            new_password = request.data.get('new_password')#If the token is valid, the new password is retrieved from the request data and set for the user. The user's password is updated in the database, and a success response is returned.
+            user.set_password(new_password)
+            user.save()
+            return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
