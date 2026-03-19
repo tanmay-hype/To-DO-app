@@ -10,6 +10,7 @@ from .models import User #User is imported for querying the User model and perfo
 from .permissions import IsOwner #IsOwner is imported for handling object-level permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .jwt_serializer import CustomTokenSerializer #CustomTokenSerializer is imported for customizing the JWT token generation process   
+from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin, IsOwnerOrReadOnly #IsAdminOrReadOnly and IsOwnerOrReadOnly are imported for handling object-level permissions based on user roles and ownership
 
 
 
@@ -49,13 +50,13 @@ class RegisterView(APIView):#RegisterView is a class-based view that handles use
 class UserListCreateView(generics.ListCreateAPIView):#UserListView is a class-based view that handles listing and creating users
     queryset = User.objects.all()#The queryset attribute is defined to specify the set of data that will be used for this view. In this case, it retrieves all User objects from the database.
     serializer_class = UserSerializer#The serializer_class attribute is defined to specify the serializer that will be used for this view. In this case, it uses the UserSerializer to serialize and deserialize User instances.
-    permission_classes = [permissions.IsAuthenticated]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.
+    permission_classes = [IsAdminOrReadOnly]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):#UserDetailView is a class-based view that handles retrieving, updating, and deleting individual users
     queryset = User.objects.all()#The queryset attribute is defined to specify the set of data that will be used for this view. In this case, it retrieves all User objects from the database.
     serializer_class = UserSerializer#The serializer_class attribute is defined to specify the serializer that will be used for this view. In this case, it uses the UserSerializer to serialize and deserialize User instances.
-    permission_classes = [permissions.IsAuthenticated, IsOwner]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.  
+    permission_classes = [ permissions.IsAuthenticated, IsOwnerOrAdmin]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.  
 
 
 class CustomTokenView(TokenObtainPairView):#CustomTokenView is a class-based view that handles JWT token generation using the CustomTokenSerializer

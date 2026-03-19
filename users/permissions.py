@@ -3,5 +3,25 @@ from rest_framework import permissions
 class IsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj == request.user
-    
-# The IsOwner class is a custom permission class that inherits from permissions.BasePermission. It defines the has_object_permission method, which checks if the user associated with the object (obj.user) is the same as the currently authenticated user (request.user). If they match, the permission is granted; otherwise, it is denied. This permission class can be used to restrict access to objects based on ownership, ensuring that users can only access their own data.
+
+
+class IsOwnerOrAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj == request.user or request.user.is_staff
+
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Allow read-only methods
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        return obj == request.user
+
+
+class IsAdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        return request.user and request.user.is_staff
