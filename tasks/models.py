@@ -18,3 +18,14 @@ class Task(models.Model):
     def __str__(self):
         return self.title
     #__str__ method is defined to return the title of the task when the object is printed or displayed in the admin interface.
+
+class Category(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='categories'
+    )
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
