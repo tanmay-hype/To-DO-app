@@ -20,6 +20,9 @@ class TaskListCreateView(generics.ListCreateAPIView):#TaskListCreateView is a cl
         if self.request.user.is_staff:
             return Task.objects.all()
         return Task.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
     
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):#TaskDetailView is a class-based view that handles retrieving, updating, and deleting individual tasks
@@ -51,5 +54,4 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):#CategoryDetailV
         if self.request.user.is_staff:
             return Category.objects.all()
         return Category.objects.filter(user=self.request.user)#The get_queryset method is overridden to filter the queryset based on the authenticated user. It retrieves only the categories that belong to the currently authenticated user, ensuring that users can only access their own categories.
-    
     
