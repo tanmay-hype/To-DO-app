@@ -9,6 +9,9 @@ from django.contrib.auth import authenticate
 # and authenticate is imported for validating
 #  user credentials during login
 
+
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
