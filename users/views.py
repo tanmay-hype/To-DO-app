@@ -9,6 +9,8 @@ from rest_framework import generics, permissions #generics and permissions are i
 from .serializers import UserSerializer #UserSerializer is imported for serializing user data
 from .models import User #User is imported for querying the User model and performing CRUD operations
 from .permissions import IsOwner #IsOwner is imported for handling object-level permissions
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .jwt_serializer import CustomTokenSerializer #CustomTokenSerializer is imported for customizing the JWT token generation process   
 
 
 
@@ -56,3 +58,6 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):#UserDetailView is a
     serializer_class = UserSerializer#The serializer_class attribute is defined to specify the serializer that will be used for this view. In this case, it uses the UserSerializer to serialize and deserialize User instances.
     permission_classes = [permissions.IsAuthenticated, IsOwner]#The permission_classes attribute is defined to specify the permissions required to access this view. In this case, it requires the user to be authenticated to access the view.  
 
+
+class CustomTokenView(TokenObtainPairView):#CustomTokenView is a class-based view that handles JWT token generation using the CustomTokenSerializer
+    serializer_class = CustomTokenSerializer#The serializer_class attribute is defined to specify the serializer that will be used for this view. In this case, it uses the CustomTokenSerializer to generate JWT tokens with custom claims.
